@@ -1,4 +1,6 @@
-let user_speaker;
+let analyser;
+let data;
+let audioCtx;
 
 function setup ()
 {
@@ -17,21 +19,28 @@ async function get_user_speakers ()
         audio : true
     };
 
-    let stream = await navigator.mediaDevices.getDisplayMedia ( c );
+    audioCtx = new AudioContext ();
+    let stream = await navigator.mediaDevices.getUserMedia ( c );
 
-    let tracks = stream.getTracks ();
-    console.log ( tracks );
-    let audio_track = tracks [0];
-    user_speaker.addTrack ( audio_track.clone ());
+    let mic = audioCtx.createMediaStreamSource ( stream );
 
-    let video_track = stream.getVideoTracks ()[0];
-    video_track.stop ();
-    stream.removeTrack ( video_track );
 
+    analyser = audioCtx.createAnalyser ();
+    analyser.fftSize = 2048;
+    mic.connect ( analyser );
+
+    data = new Uint8Array ( analyser.frequencyBinCount );
 }
 
 function draw ()
 {
+    if ( analyser == null )
+        return;
+
+    analyser.getByteFrequencyData ( data );
+
+    let peak = Math.max ( ...data );
+
     let t = millis()/1000;
     let a = TWO_PI * t/2;
 
@@ -46,7 +55,7 @@ function draw ()
     translate ( width/2, height/2 );
     rotate ( a );
 
-    rect ( 0, 0, width/10, width/10 );
+    rect ( 0, 0, peak, width/10 );
 
     pop ();
 }
