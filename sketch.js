@@ -1,13 +1,19 @@
 let analyser;
 let data;
 let audioCtx;
+let box_sizes;
 
-const num_boxes = 64;
+const num_boxes = 256;
 const fftSize = 2048;
 
 function setup ()
 {
     createCanvas ( 600, 600 );
+    
+    box_sizes = [];
+
+    for ( let i=0; i<num_boxes; i++ )
+        box_sizes [ i ] = 0;
 
     let button = createButton ( 'Listen' );
     button.position ( 0, 0 );
@@ -63,19 +69,19 @@ function amps ( data )
 
 function draw ()
 {
-    background ( 16, 23, 17, 120 );
+    background ( 16, 23, 17, 20 );
 
-    let rect_sizes;
+    let offsets;
 
     if ( analyser == null ) {
-        rect_sizes = [];
+        offsets = [];
 
         for ( let i = 0; i<num_boxes; i++ )
-            rect_sizes.push ( 0.25 );
+            offsets.push ( 0.25 );
     }
     else {
         analyser.getByteFrequencyData ( data );
-        rect_sizes = amps ( data ).map ( a => map ( a, 0, 255, 0, 1 ) );
+        offsets = amps ( data ).map ( a => map ( a, 0, 255, 0, 2 ) );
     }
 
     let grid_w = width/sqrt(num_boxes);
@@ -92,8 +98,13 @@ function draw ()
     {
         for ( let j = 0; j<sqrt(num_boxes); j++ )
         {
-            let idx = (sqrt(num_boxes) * i + j + idx_offset)%num_boxes;
-            let s = rect_sizes [ idx ];
+            let off_idx = (sqrt(num_boxes) * i + j + idx_offset)%num_boxes;
+            let o = offsets [ off_idx ];
+            let s_idx = sqrt(num_boxes) * i + j;
+            box_sizes [ s_idx ] = o;
+
+
+            let s = box_sizes [ s_idx ];
             let w = grid_w * s;
             let h = grid_h * s;
 
@@ -102,5 +113,7 @@ function draw ()
             rect ( x, y, w, h );
         }
     }
+
+    box_sizes = box_sizes.map ( s => Math.max ( 0, s * 0.9 ) );
 }
 
