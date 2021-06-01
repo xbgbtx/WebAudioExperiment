@@ -46,9 +46,9 @@ function amps ( data )
 {
     let a = [];
 
-    let chunk = Math.floor(data.length * 0.5);
+    let chunk = Math.floor(data.length * 0.25);
 
-    data = data.slice ( 0, chunk );
+    data = data.slice ( chunk, data.length - chunk );
 
     let span = data.length / num_boxes;
 
