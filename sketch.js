@@ -4,7 +4,7 @@ let audioCtx;
 let box_sizes;
 
 const num_boxes = 256;
-const fftSize = 2048;
+const fftSize = Math.pow ( 2, 15 );
 
 function setup ()
 {
@@ -46,11 +46,12 @@ function amps ( data )
 {
     let a = [];
 
-    let chunk = Math.floor(data.length * 0.25);
+    let data_start = Math.floor(data.length * 0);
+    let data_end   = Math.floor(data.length * 0.5);
 
-    data = data.slice ( chunk, data.length - chunk );
+    data = data.slice ( data_start, data_end );
 
-    let span = data.length / num_boxes;
+    let span = Math.floor ( data.length / num_boxes );
 
     for ( let i = 0; i < num_boxes; i++ ) {
         let x = 0;
@@ -59,7 +60,7 @@ function amps ( data )
         let end = start + span;
 
         for ( let j = start; j < end; j++ )
-            x += data [ start + j ];
+            x += Math.max ( data [ start + j ], 0 );
 
         a.push ( x / span );
     }
@@ -69,7 +70,7 @@ function amps ( data )
 
 function draw ()
 {
-    background ( 16, 23, 17, 20 );
+    background ( 16, 23, 17, 50 );
 
     let offsets;
 
@@ -81,7 +82,7 @@ function draw ()
     }
     else {
         analyser.getByteFrequencyData ( data );
-        offsets = amps ( data ).map ( a => map ( a, 0, 255, 0, 2 ) );
+        offsets = amps ( data ).map ( a => map ( a, 0, 255, 0, 3 ) );
     }
 
     let grid_w = width/sqrt(num_boxes);
@@ -90,7 +91,7 @@ function draw ()
     stroke ( 255 );
     noFill ();
 
-    let t = millis()/60;
+    let t = millis();
 
     let idx_offset = Math.floor ( t ) % num_boxes;
 
@@ -114,6 +115,6 @@ function draw ()
         }
     }
 
-    box_sizes = box_sizes.map ( s => Math.max ( 0, s * 0.9 ) );
+    box_sizes = box_sizes.map ( s => Math.max ( 0, s * 0.8 ) );
 }
 
